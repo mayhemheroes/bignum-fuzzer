@@ -1,0 +1,4 @@
+project: PROJECT
+target: fuzzer_boringssl_libmpdec_num_len_100_all_operations_num_loops_1
+cmds:
+- cmd: /out/fuzzer_boringssl_libmpdec_num_len_100_all_operations_num_loops_1
