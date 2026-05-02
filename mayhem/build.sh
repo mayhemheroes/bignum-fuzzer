@@ -32,11 +32,12 @@ fi
 ./config --debug no-fips no-shared no-tests
 make -j$(nproc)
 
-# Build libgmp
-cd $SRC/libgmp
-autoreconf -ivf
-./configure --enable-maintainer-mode
-make -j$(nproc)
+# Use system libgmp installed via apt (libgmp-dev).
+# Building GMP from source with clang 22 + -fsanitize=address fails because
+# libtool attempts to link a shared library with ASan, which is unsupported in
+# the oss-fuzz base-builder environment.
+LIBGMP_A_PATH=/usr/lib/x86_64-linux-gnu/libgmp.a
+LIBGMP_INCLUDE_PATH=/usr/include/x86_64-linux-gnu
 
 # Build OpenSSL module
 cd $SRC/bignum-fuzzer/modules/openssl
@@ -56,7 +57,7 @@ make
 
 # Build libgmp module
 cd $SRC/bignum-fuzzer/modules/libgmp
-LIBGMP_INCLUDE_PATH=$SRC/libgmp LIBGMP_A_PATH=$SRC/libgmp/.libs/libgmp.a make
+LIBGMP_INCLUDE_PATH=$LIBGMP_INCLUDE_PATH LIBGMP_A_PATH=$LIBGMP_A_PATH make
 
 # Build libmpdec module
 cd $SRC/bignum-fuzzer/modules/libmpdec
@@ -117,7 +118,7 @@ make -j$(nproc)
 # Build BoringSSL module
 cd $SRC/bignum-fuzzer/modules/openssl
 make clean
-CFLAGS="$CFLAGS -DBIGNUM_FUZZER_BORINGSSL" OPENSSL_INCLUDE_PATH=$SRC/boringssl/include OPENSSL_LIBCRYPTO_A_PATH=$SRC/boringssl/build/crypto/libcrypto.a make
+CFLAGS="$CFLAGS -DBIGNUM_FUZZER_BORINGSSL" OPENSSL_INCLUDE_PATH=$SRC/boringssl/include OPENSSL_LIBCRYPTO_A_PATH=$SRC/boringssl/build/libcrypto.a make
 
 # Build mbedtls module
 cd $SRC/bignum-fuzzer/modules/mbedtls
